@@ -1,23 +1,41 @@
 #include <iostream>
 #include <windows.h>
+#include <cmath>
 #include <ctime>
+#include <iomanip>
 #include <cstdlib>
 #include <vector>
 #include <algorithm>
+#include <thread>
 using namespace std;
 
-struct Card {
+struct Card { // FIXME: Would ideally use this or a class to sort each card's data but may be unnecessary bloat
 	char symbol;
 	bool isActive;
 };
 
 void timer(unsigned int secInput) {
-	unsigned int timer = secInput;
-	while (timer >= 1) {
-		cout << timer;
-		Sleep(1000); // = 1 second, iterated by timer
-		timer--;
-		system("CLS"); // Need a way to clear a line/item and not entire screen
+    unsigned int timer = secInput;
+    unsigned int digitOutput = log10(timer) + 1; // Number of digits in timer
+    while (timer >= 1) {
+        cout << setw(digitOutput) << timer << flush; // Fixed format error when timer goes down a digit
+        Sleep(1000); // = 1 second, iterated by timer
+        cout << '\r';
+        timer--;
+    }
+    cout << endl;
+}
+
+void printTimePlaceholder() {
+    int x; // Placeholder for testing timer()
+	while (true) {
+		cout << "Enter number of seconds: ";
+		cin >> x;
+		if (cin.fail()) {
+			cout << "\nThat\'s enough." << endl;
+			break;
+		}
+		timer(x);
 	}
 }
 
@@ -29,17 +47,6 @@ void addScore(unsigned int& currentScore, unsigned int& currentTime) {
 // FIXME: More systems needed!
 
 int main() {
-	int x; // FIXME: Placeholder for testing timer()
-	while (true) {
-		cout << "Enter number of seconds: ";
-		cin >> x;
-		if (cin.fail()) {
-			cout << "\nThat\'s enough." << endl;
-			break;
-		}
-		timer(x);
-	}
-
     int i, j, k = 0;
     vector<char> alph(26);
     vector<char> listOfLetters;
@@ -53,7 +60,7 @@ int main() {
                        {9, 10, 11, 12},
                        {13, 14, 15, 16} };
 
-    
+
     //alphabet
     for (i = 0; i < 26; i++) {
         alph.at(i) = 'A' + i;
@@ -81,8 +88,8 @@ int main() {
     }
 
     cout << "Thanks for playing our matching game!\nHow to play:\n";
-    cout << "Enter a number to see what letter lies behind it. Try and match as many letters as you can!\n"
-    
+    cout << "Enter a number to see what letter lies behind it. Try and match as many letters as you can!\n";
+
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
             cout << disp[i][j] << " ";
@@ -94,8 +101,7 @@ int main() {
     //FIXME: need to add in code that prints disp array with the user-entered numbers being replaced by the cooresponding letter
     //FIXME: need to include code for user errors: i.e. user enters a number that has already been used or does not exist
     //FIXME: need to figure out how to clear out output screen so when user enters a new number, screen is not busy and is up to date
-
-}
-
+	
 	return 0;
+	
 }

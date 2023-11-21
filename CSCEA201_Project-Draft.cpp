@@ -6,7 +6,8 @@
 #include <cstdlib>
 #include <vector>
 #include <algorithm>
-#include <thread>
+#include <chrono>
+#include <unistd.h>
 using namespace std;
 
 struct Card {
@@ -18,28 +19,33 @@ struct Card {
 vector<vector<vector<Card>>> disp(4, vector<vector<Card>>(4, vector<Card>(1))); // Got very convoluted but necessary to pull from struct properly
 unsigned int currentScore = 0;
 
-void timer(unsigned int secInput) {
-    unsigned int timer = secInput;
-    unsigned int digitOutput = log10(timer) + 1;
-    while (timer >= 1) {
-        cout << setw(digitOutput) << timer << flush; // Preventing format error when timer goes down a digit
-        Sleep(1000); // = 1 second, iterated by timer
-        cout << '\r';
-        timer--;
-    }
-    cout << endl;
-}
+// Reduced scope of project by replacing old timer function w/ using chrono "stopwatch" in inputGuess()
 
-void addScore(unsigned int& currentScore, unsigned int& currentTime) {
-    double timeBonus = (1.0 / static_cast<double>(currentTime));
+void addScore(unsigned int& currentScore, double timeDuration) {
+    double timeBonus = ceil((25.0 / timeDuration)); // Max points is 25, Min points is 1
     currentScore += timeBonus;
 }
 
-void inputGuess(vector<vector<vector<Card>>>& disp) { //FIXME: need to add in code that prints disp array with the user-entered numbers being replaced by the corresponding letter
+void printGrid(vector<vector<vector<Card>>>& disp) {
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if ((disp[i][j][0]).isActive) {
+                cout << ((disp[i][j][0].backNumber < 10) ? ("0" + to_string(disp[i][j][0].backNumber)) : to_string(disp[i][j][0].backNumber)) << " ";
+            }
+            else {
+                cout << disp[i][j][0].frontLetter << " ";
+            }
+        }
+        cout << endl;
+    }
+}
+
+void inputGuess(vector<vector<vector<Card>>>& disp) { // FIXME: Formatting for grid w/ some answers correct looks awkward, with backNumber taking two spaces and frontLetter taking one.
     int guess1, guess2;
     bool validGuess1 = false, validGuess2 = false;
+    auto startTime = chrono::high_resolution_clock::now(); // FIXME: startTime & endTime need to persist across incorrect answers and reset upon correct ones.
 
-    while (validGuess1 == false) { // May be worth making into separate function when cleaning up, but not a priority
+    while (validGuess1 == false) { // FIXME: May be worth making into separate function when cleaning up, but not a priority
         cout << "Enter the first card's number: ";
         cin >> guess1;
         if (cin.fail()) {
@@ -82,21 +88,49 @@ void inputGuess(vector<vector<vector<Card>>>& disp) { //FIXME: need to add in co
 
     if (disp[i1][j1][0].frontLetter == disp[i2][j2][0].frontLetter) { // Checks for match
         if (disp[i1][j1][0].isActive == false || disp[i2][j2][0].isActive == false) {
-            cout << "\nYou've already used that card!" << endl;
+            cout << "\nYou\'ve already used that card!" << endl;
             inputGuess(disp);
         }
         else {
+            auto endTime = chrono::high_resolution_clock::now();
+            auto timeDuration = static_cast<double>(chrono::duration_cast<chrono::seconds>(endTime - startTime).count());
+            addScore(currentScore, timeDuration);
             cout << "\nCongratulations! The letters match." << endl;
+            cout << "\nScore: " << currentScore << "\nTook " << timeDuration << (timeDuration == 1 ? " second" : " seconds") << " to match in time!" << endl;
             disp[i1][j1][0].isActive = false;
             disp[i2][j2][0].isActive = false;
-            unsigned int currentTime = 1; // FIXME: Placeholder, need to integrate timer
-            addScore(currentScore, currentTime);
+            printGrid(disp);
         }
     }
     else {
         cout << "\nSorry, the letters do not match." << endl;
         inputGuess(disp);
     }
+}
+
+bool anyCardsLeft(vector<vector<vector<Card>>>& disp) {
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (disp[i][j][0].isActive) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void introDisplay(vector<vector<vector<Card>>>& disp, int instructWait = 10, int hintWait = 5) {
+    cout << "Thanks for playing our matching game!\n\nHow to play:\n";
+    cout << "Enter a number to see what letter lies behind it. Try and match as many letters as you can!\n\n";
+    Sleep(instructWait * 1000); // 10 seconds to read instructions; ideally user would see countdown until hint so they don't get confused
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            cout << disp[i][j][0].frontLetter << " ";
+        }
+        cout << endl;
+    }
+    Sleep(hintWait * 1000); // 5 seconds to view answers
+    system("cls"); // clear screen
 }
 
 int main() {
@@ -137,25 +171,27 @@ int main() {
         }
     }
 
-    cout << "Thanks for playing our matching game!\n\nHow to play:\n";
-    cout << "Enter a number to see what letter lies behind it. Try and match as many letters as you can!\n\n";
+    introDisplay(disp);
 
-    for (int i = 0; i < 4; i++) {
+    /* for (int i = 0; i < 4; i++) { // Testbench for viewing every Card's elements beside each other. Remove /* to re-implement.
         for (int j = 0; j < 4; j++) {
             cout << disp[i][j][0].backNumber << " ";
         }
         cout << endl;
     }
     cout << endl;
-    for (int i = 0; i < 4; i++) { // FIXME: Grid is visible for now to allow debugging. Either the matches can appear very briefly before disappearing (requires even more timer integ.) or the user can flip individual cards without guessing (requires print+update grid function)
+    for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             cout << disp[i][j][0].frontLetter << " ";
         }
         cout << endl;
-    }
+    } */
 
-    cout << endl;
-    inputGuess(disp);
+    printGrid(disp);
+    while (anyCardsLeft(disp)) { // Starts game and keeps going until finished
+        inputGuess(disp);
+    }
+    cout << "\nFinal Score: " << currentScore << "\n\nThanks for playing!" << endl;
 
     return 0;
 }

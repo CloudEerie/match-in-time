@@ -1,4 +1,4 @@
-# do-it-in-time
+# match-in-time
 "Match in Time!"
 For CSCE A201 project at UAA. Due November 26, 2023.
 By Ian Rodriguez and Zelan Allen.

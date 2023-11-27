@@ -30,10 +30,10 @@ void printGrid(vector<vector<vector<Card>>>& disp) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             if ((disp[i][j][0]).isActive) {
-                cout << ((disp[i][j][0].backNumber < 10) ? ("0" + to_string(disp[i][j][0].backNumber)) : to_string(disp[i][j][0].backNumber)) << " ";
+                cout << left << setw(4) << disp[i][j][0].backNumber;
             }
             else {
-                cout << " " << disp[i][j][0].frontLetter << " ";
+                cout << left << setw(4) << disp[i][j][0].frontLetter;
             }
         }
         cout << endl;
@@ -120,7 +120,7 @@ void introDisplay(vector<vector<vector<Card>>>& disp, int hintWait = 10) {
     cout << endl;
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            cout << " " << disp[i][j][0].frontLetter << " ";
+            cout << left << setw(4) << disp[i][j][0].frontLetter;
         }
         cout << endl;
     }

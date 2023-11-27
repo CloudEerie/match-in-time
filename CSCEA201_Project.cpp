@@ -43,7 +43,7 @@ void printGrid(vector<vector<vector<Card>>>& disp) {
 }
 
 void introDisplay(vector<vector<vector<Card>>>& disp, int hintWait = 10) {
-    if (wrongGuess != 3) {
+    if (wrongGuess < 3) {
         cout << "Thanks for playing our matching game!\n\nHow to play:\n\n";
         cout << "You\'ll get 10 seconds to memorize the positions of 16 letters, 8 of which are pairs.\nOnce the 10 seconds are up, type in the position of the matching cards from memory!\n";
         cout << "Try to go as quickly as you can to earn bonus points!\n\n";
